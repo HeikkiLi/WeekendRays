@@ -15,6 +15,23 @@
 #include "3rdparty\stb_image.h"
 
 
+Hitable *CornellBox()
+{
+	Hitable **list = new Hitable*[6];
+	int i = 0;
+	Material *red = new Lambertian(new ConstantTexture(Vec3(0.65, 0.05, 0.05)));
+	Material *white = new Lambertian(new ConstantTexture(Vec3(0.73, 0.73, 0.73)));
+	Material *green = new Lambertian(new ConstantTexture(Vec3(0.12, 0.45, 0.15)));
+	Material *light = new DiffuseLight(new ConstantTexture(Vec3(15, 15, 15)));
+	list[i++] = new FlipNormals( new YZRect(0, 555, 0, 555, 555, green) );
+	list[i++] = new YZRect(0, 555, 0, 555, 0, red);
+	list[i++] = new XZRect(213, 343, 227, 332, 554, light);
+	list[i++] = new FlipNormals( new XZRect(0, 555, 0, 555, 555, white) );
+	list[i++] = new XZRect(0, 555, 0, 555, 0, white);
+	list[i++] = new FlipNormals( new XYRect(0, 555, 0, 555, 555, white) );
+	return new HitableList(list, i);
+}
+
 Hitable* simpleLight()
 {
 	Texture *pertext = new NoiseTexture(4);
@@ -121,8 +138,8 @@ Vec3 color(const Ray& r, Hitable *world, int depth)
 
 int main()
 {
-	int nx = 200;
-	int ny = 100;
+	int nx = 400; // 200;
+	int ny = 400; // 100;
 	int ns = 100;
 	std::cout << "P3\n" << nx << " " << ny << "\n255\n";
 
@@ -130,11 +147,18 @@ int main()
 	//Hitable *world = TwoSpheres();
 	//Hitable *world = TwoPerlinSpheres();
 	//Hitable *world = Earth();
-	Hitable *world = simpleLight();
+	//Hitable *world = simpleLight();
+	Hitable *world = CornellBox();
+	//Vec3 lookfrom(13, 2, 3); // Random scene
+	//Vec3 lookfrom(0, 2, 10); // Earth scene
+	//Vec3 lookfrom(8, 3, 8);  //  Simple light scene
+	
+	Vec3 lookfrom(278, 278, -800);  // CornellBox
+	Vec3 lookat(278, 278, 0);		// CornellBox
 
-	//Vec3 lookfrom(13, 2, 3);
-	Vec3 lookfrom(0, 2, 10);
-	Vec3 lookat(0, 0, 0);
+	//Vec3 lookat(0, 2, 0);		
+	//Vec3 lookat(0, 0, 0);
+	
 	float dist_to_focus = 10.0; // (lookfrom - lookat).length();
 	float aperture = 0.0;
 	float vfov = 40.0;
