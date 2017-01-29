@@ -33,6 +33,17 @@ public:
 	Texture *emit;
 };
 
+class Isotropic : public Material {
+public:
+	Isotropic(Texture *a) : albedo(a) {}
+	virtual bool scatter(const Ray& r_in, const HitRecord& rec, Vec3& attenuation, Ray& scattered) const {
+		scattered = Ray(rec.p, random_in_unit_sphere());
+		attenuation = albedo->value(rec.u, rec.v, rec.p);
+		return true;
+	}
+	Texture *albedo;
+};
+
 class Lambertian : public Material
 {
 public:

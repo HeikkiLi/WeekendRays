@@ -146,8 +146,10 @@
     <ClInclude Include="3rdparty\std_image_write.h" />
     <ClInclude Include="aabb.h" />
     <ClInclude Include="aarect.h" />
+    <ClInclude Include="box.h" />
     <ClInclude Include="bvh.h" />
     <ClInclude Include="camera.h" />
+    <ClInclude Include="ConstantMedium.h" />
     <ClInclude Include="hitable.h" />
     <ClInclude Include="hitablelist.h" />
     <ClInclude Include="ImageTexture.h" />
