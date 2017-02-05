@@ -16,8 +16,86 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "3rdparty\stb_image.h"
 
+Hitable* FinalBook2()
+{
+	int nb = 20;
+	Hitable** list = new Hitable*[30];
+	Hitable** boxList = new Hitable*[10000];
+	Hitable** boxList2 = new Hitable*[10000];
+	Material* white = new Lambertian(new ConstantTexture(Vec3(0.73, 0.73, 0.73)));
+	Material* ground = new Lambertian(new ConstantTexture(Vec3(0.48, 0.83, 0.53)));
 
-Hitable *CornellSmoke()
+	int b = 0;
+	for(int i=0; i<nb; i++)
+	{ 
+		for (int j = 0; j < nb; j++)
+		{
+			float w = 100;
+			float x0 = -1000 + i*w;
+			float z0 = -1000 + j*w;
+			float y0 = 0;
+			float x1 = x0 + w;
+			float y1 = 100 * (random() + 0.01);
+			float z1 = z0 + w;
+			boxList[b++] = new Box(Vec3(x0, y0, z0), Vec3(x1, y1, z1), ground);
+		}
+	}
+	int l = 0;
+	list[l++] = new BVHNode(boxList, b, 0, 1);
+	Material* light = new DiffuseLight(new ConstantTexture(Vec3(7, 7, 7)));
+	list[l++] = new XZRect(123, 423, 147, 412, 554, light);
+	Vec3 center(400, 400, 200);
+	list[l++] = new MovingSphere(center, center + Vec3(30, 0, 0), 0, 1, 50,
+		new Lambertian(new ConstantTexture(Vec3(0.7, 0.3, 0.1))));
+	list[l++] = new Sphere(Vec3(260, 150, 45), 50, new Dielectric(1.5));
+	list[l++] = new Sphere(Vec3(0, 150, 145), 50, new Metal(Vec3(0.8,0.8,0.9), 10.0));
+	Hitable* boundary = new Sphere(Vec3(360, 150, 145), 70, new Dielectric(1.5));
+	list[l++] = boundary;
+	list[l++] = new ConstantMedium(boundary, 0.2, new ConstantTexture(Vec3(0.2, 0.4, 0.9)));
+	boundary = new Sphere(Vec3(0, 0, 0), 5000, new Dielectric(1.5));
+	list[l++] = new ConstantMedium(boundary, 0.0001, new ConstantTexture(Vec3(1.0, 1.0, 1.0)));
+	int nx, ny, nn;
+	unsigned char* tex_data = stbi_load("earthmap.jpg", &nx, &ny, &nn, 0);
+	Material* emat = new Lambertian(new ImageTexture(tex_data, nx, ny));
+	list[l++] = new Sphere(Vec3(400, 200, 400), 100, emat);
+	Texture* pertext = new NoiseTexture(0.1);
+	list[l++] = new Sphere(Vec3(220, 280, 300), 80, new Lambertian(pertext));
+	int ns = 1000;
+	for (int j = 0; j < ns; j++)
+	{
+		boxList2[j] = new Sphere(Vec3(165 * random(), 165 * random(), 165 * random()), 10, white);
+	}
+	list[l++] = new Translate(new RotateY(new BVHNode(boxList2, ns, 0.0, 1.0), 15), Vec3(-100, 270, 395));
+	return new HitableList(list, l);
+}
+
+Hitable* CornellBalls()
+{
+	Hitable **list = new Hitable*[9];
+	int i = 0;
+	Material *red = new Lambertian(new ConstantTexture(Vec3(0.65, 0.05, 0.05)));
+	Material *white = new Lambertian(new ConstantTexture(Vec3(0.73, 0.73, 0.73)));
+	Material *green = new Lambertian(new ConstantTexture(Vec3(0.12, 0.45, 0.15)));
+	Material *light = new DiffuseLight(new ConstantTexture(Vec3(5, 5, 5)));
+
+	// Walls
+	list[i++] = new FlipNormals(new YZRect(0, 555, 0, 555, 555, green));
+	list[i++] = new YZRect(0, 555, 0, 555, 0, red);
+	list[i++] = new FlipNormals(new XZRect(113, 443, 127, 432, 554, light) );
+	list[i++] = new FlipNormals(new XZRect(0, 555, 0, 555, 555, white));
+	list[i++] = new XZRect(0, 555, 0, 555, 0, white);
+	list[i++] = new FlipNormals(new XYRect(0, 555, 0, 555, 555, white));
+
+	// Spheres (Balls)
+	Hitable *boundary = new Sphere(Vec3(160, 100, 145), 100, new Dielectric(1.5));
+	list[i++] = boundary;
+	list[i++] = new ConstantMedium(boundary, 0.1, new ConstantTexture(Vec3(1.0, 1.0, 1.0)));
+	list[i++] = new Translate(new RotateY(new Box(Vec3(0, 0, 0), Vec3(165, 330, 165), white), 15), Vec3(265, 0, 295));
+
+	return new HitableList(list, i);
+}
+
+Hitable* CornellSmoke()
 {
 	Hitable **list = new Hitable*[8];
 	int i = 0;
@@ -52,7 +130,7 @@ Hitable *CornellBox()
 	
 	list[i++] = new FlipNormals( new YZRect(0, 555, 0, 555, 555, green) );
 	list[i++] = new YZRect(0, 555, 0, 555, 0, red);
-	list[i++] = new XZRect(213, 343, 227, 332, 554, light);
+	list[i++] = new FlipNormals( new XZRect(213, 343, 227, 332, 554, light));
 	list[i++] = new FlipNormals( new XZRect(0, 555, 0, 555, 555, white) );
 	list[i++] = new XZRect(0, 555, 0, 555, 0, white);
 	list[i++] = new FlipNormals( new XYRect(0, 555, 0, 555, 555, white) );
@@ -167,9 +245,9 @@ Vec3 color(const Ray& r, Hitable *world, int depth)
 
 int main()
 {
-	int nx = 200; // 200;
-	int ny = 200; // 100;
-	int ns = 10;
+	int nx = 800; // 200;
+	int ny = 800; // 100;
+	int ns = 100;
 	std::cout << "P3\n" << nx << " " << ny << "\n255\n";
 
 	//Hitable *world = RandomScene();
@@ -178,7 +256,9 @@ int main()
 	//Hitable *world = Earth();
 	//Hitable *world = simpleLight();
 	//Hitable *world = CornellBox();
-	Hitable *world = CornellSmoke();
+	//Hitable *world = CornellSmoke();
+	//Hitable *world = CornellBalls();
+	Hitable *world = FinalBook2();
 
 	//Vec3 lookfrom(13, 2, 3); // Random scene
 	//Vec3 lookfrom(0, 2, 10); // Earth scene

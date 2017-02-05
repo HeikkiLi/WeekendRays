@@ -29,7 +29,6 @@ public:
 		return emit->value(u, v, p);
 	}
 
-
 	Texture *emit;
 };
 
