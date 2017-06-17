@@ -245,9 +245,9 @@ Vec3 color(const Ray& r, Hitable *world, int depth)
 
 int main()
 {
-	int nx = 800; // 200;
-	int ny = 800; // 100;
-	int ns = 100;
+	int nx = 400; // 200;
+	int ny = 400; // 100;
+	int ns = 1000;
 	std::cout << "P3\n" << nx << " " << ny << "\n255\n";
 
 	//Hitable *world = RandomScene();
