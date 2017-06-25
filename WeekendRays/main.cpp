@@ -14,7 +14,9 @@
 #include "ConstantMedium.h"
 
 #define STB_IMAGE_IMPLEMENTATION
+#define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "3rdparty\stb_image.h"
+#include "3rdparty\std_image_write.h"
 
 Hitable* FinalBook2()
 {
@@ -102,7 +104,7 @@ Hitable* CornellSmoke()
 	Material *red = new Lambertian(new ConstantTexture(Vec3(0.65, 0.05, 0.05)));
 	Material *white = new Lambertian(new ConstantTexture(Vec3(0.73, 0.73, 0.73)));
 	Material *green = new Lambertian(new ConstantTexture(Vec3(0.12, 0.45, 0.15)));
-	Material *light = new DiffuseLight(new ConstantTexture(Vec3(7, 7, 7)));
+	Material *light = new DiffuseLight(new ConstantTexture(Vec3(17,17, 17)));
 
 	list[i++] = new FlipNormals(new YZRect(0, 555, 0, 555, 555, green));
 	list[i++] = new YZRect(0, 555, 0, 555, 0, red);
@@ -119,6 +121,16 @@ Hitable* CornellSmoke()
 	return new HitableList(list, i);
 }
 
+Hitable* XZRectTest()
+{
+	Hitable **list = new Hitable*[2];
+	int i = 0;
+	Material *light = new DiffuseLight(new ConstantTexture(Vec3(1, 1, 1)));
+	list[i++] = new XZRect(113, 443, 127, 432, 554, light);
+	list[i++] = new XYRect(113, 443, 127, 432, 554, light);
+	return new HitableList(list, i);
+}
+
 Hitable *CornellBox()
 {
 	Hitable **list = new Hitable*[8];
@@ -130,7 +142,7 @@ Hitable *CornellBox()
 	
 	list[i++] = new FlipNormals( new YZRect(0, 555, 0, 555, 555, green) );
 	list[i++] = new YZRect(0, 555, 0, 555, 0, red);
-	list[i++] = new FlipNormals( new XZRect(213, 343, 227, 332, 554, light));
+	list[i++] = new XZRect(213, 343, 227, 332, 554, light);
 	list[i++] = new FlipNormals( new XZRect(0, 555, 0, 555, 555, white) );
 	list[i++] = new XZRect(0, 555, 0, 555, 0, white);
 	list[i++] = new FlipNormals( new XYRect(0, 555, 0, 555, 555, white) );
@@ -235,13 +247,36 @@ Vec3 color(const Ray& r, Hitable *world, int depth)
 	}
 	else {
 		return Vec3(0, 0, 0);
-		/*
-		Vec3 unit_direction = unit_vector(r.direction());
-		float t = 0.5f*(unit_direction.y() + 1.0f);
-		return (1.0f - t)*Vec3(1.0f, 1.0f, 1.0f) + t*Vec3(0.5f, 0.7f, 1.0f);
-		*/
 	}
 }
+
+
+Vec3 pixelValue(const Vec3 radiance, const float k, const float gamma)
+{
+	// Adjust for constant sensitivity
+	Vec3 L = radiance;
+	L *= 1.0f / k;
+
+	// Maximum radiance at any frequency
+	float m = fmax(fmaxf(L.r(), L.g()), fmaxf(L.b(), 1.0f));
+
+	// Normalize the input
+	L *= 1.0f / m;
+
+	
+	//Restore magnitude, but fade towards white when the maximum value approaches 1.0
+	m = clamp((m - 1.0f) * 0.2f, 0.0f, 1.0f);
+	L = L * (1.0 - m) + Vec3(m, m, m);
+
+	//Gamma encode for a sRGB display
+	Vec3 c = Vec3(L.r(), L.g(), L.b());
+
+	c[0] = pow(c.r(), 1.0f / gamma);
+	c[1]= pow(c.g(), 1.0f / gamma);
+	c[2]= pow(c.b(), 1.0f / gamma);
+	return c;
+}
+
 
 int main()
 {
@@ -257,6 +292,9 @@ int main()
 	//Hitable *world = simpleLight();
 	//Hitable *world = CornellBox();
 	//Hitable *world = CornellSmoke();
+
+	//Hitable* world = XZRectTest();
+
 	//Hitable *world = CornellBalls();
 	Hitable *world = FinalBook2();
 
@@ -294,13 +332,16 @@ int main()
 
 			col /= float(ns);
 			// gamma correction
-			col = Vec3(sqrt(col[0]), sqrt(col[1]), sqrt(col[2]));
+			//col = Vec3(sqrt(col[0]), sqrt(col[1]), sqrt(col[2]));
+			col = pixelValue(col, 0.9f, 2.2f);
 			int ir = int(255.99*col[0]);
 			int ig = int(255.99*col[1]);
 			int ib = int(255.99*col[2]);
 			std::cout << ir << " " << ig << " " << ib << "\n";
+
 		}
 	}
+	
 
 	if (world != NULL)
 	{

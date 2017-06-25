@@ -62,3 +62,17 @@ float schlick(float cosine, float ref_idx)
 	r0 = r0*r0;
 	return r0 + (1 - r0)*pow((1 - cosine), 5);
 }
+
+inline float clamp(float val, float low, float hi) {
+
+	if (val <= low) {
+		return low;
+	}
+	else if (val >= hi) {
+		return hi;
+	}
+	else {
+		return val;
+	}
+
+}

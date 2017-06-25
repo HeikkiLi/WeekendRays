@@ -10,7 +10,7 @@ public:
 		x0(_x0), x1(_x1), y0(_y0), y1(_y1), k(_k), mp(mat) {};
 	virtual bool hit(const Ray& r, float t0, float t1, HitRecord& rec) const;
 	virtual bool bounding_box(float t0, float t1, AABB& box) const {
-		box = AABB(Vec3(x0, y0, k - 0.0001), Vec3(x1, y1, k + 0.0001));
+		box = AABB(Vec3(x0, y0, k - 0.0001f), Vec3(x1, y1, k + 0.0001f));
 		return true;
 	}
 
@@ -27,7 +27,7 @@ public:
 		x0(_x0), x1(_x1), z0(_z0), z1(_z1), k(_k), mp(mat) {};
 	virtual bool hit(const Ray& r, float t0, float t1, HitRecord& rec) const;
 	virtual bool bounding_box(float t0, float t1, AABB& box) const {
-		box = AABB(Vec3(x0, k - 0.0001, z0), Vec3(x1, k + 0.0001, z1));
+		box = AABB(Vec3(x0, k - 0.0001f, z0), Vec3(x1, k + 0.0001f, z1));
 		return true;
 	}
 
@@ -43,7 +43,7 @@ public:
 		y0(_y0), y1(_y1), z0(_z0), z1(_z1), k(_k), mp(mat) {};
 	virtual bool hit(const Ray& r, float t0, float t1, HitRecord& rec) const;
 	virtual bool bounding_box(float t0, float t1, AABB& box) const {
-		box = AABB(Vec3(k - 0.0001, y0, z0), Vec3(k + 0.0001, y1, z1));
+		box = AABB(Vec3(k - 0.0001f, y0, z0), Vec3(k + 0.0001f, y1, z1));
 		return true;
 	}
 
