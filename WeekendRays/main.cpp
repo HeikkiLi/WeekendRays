@@ -278,9 +278,26 @@ Vec3 pixelValue(const Vec3 radiance, const float k, const float gamma)
 	return c;
 }
 
+// Probability Density Function
+inline float pdf(const Vec3& p)
+{
+	return 1 / (4 * M_PI);
+}
 
 int main()
 {
+
+	int N = 1000000;
+	float sum;
+	for (int i = 0; i < N; i++)
+	{
+		Vec3 d = random_on_unit_sphere();
+		float cosine_squared = d.z()*d.z();
+		sum += cosine_squared / pdf(d);
+	}
+	std::cout << "I = " << sum / N << "\n";
+
+	/*
 	int nx = 640; // 200;
 	int ny = 480; // 100;
 	int ns = 1000;
@@ -349,4 +366,5 @@ int main()
 		delete world;
 		world = NULL;
 	}
+	*/
 }

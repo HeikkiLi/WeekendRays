@@ -28,6 +28,16 @@ Vec3 random_in_unit_sphere()
 
 }
 
+Vec3 random_on_unit_sphere()
+{
+	Vec3 p;
+	do {
+		p = 2.0f*Vec3(random(), random(), random()) - Vec3(1, 1, 1);
+	} while (dot(p, p) >= 1.0f);
+	return unit_vector(p);
+
+}
+
 Vec3 random_in_unit_disk()
 {
 	Vec3 p;
