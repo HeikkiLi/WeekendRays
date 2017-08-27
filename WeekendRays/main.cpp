@@ -199,6 +199,8 @@ Hitable* RandomScene()
 	Hitable **list = new Hitable*[n + 1];
 	Texture *checker = new CheckerTexture(new ConstantTexture(Vec3(0.2, 0.3, 0.1)),
 											new ConstantTexture(Vec3(0.9, 0.9, 0.9)));
+
+	
 	list[0] = new Sphere(Vec3(0, -1000.0, 0), 1000, new Lambertian(checker));
 	int i = 1;
 	for (int a = -11; a < 11; a++) {
@@ -206,7 +208,7 @@ Hitable* RandomScene()
 			float choose_mat = random();
 			Vec3 center(a + 0.9*random(), 0.2, b + 0.9*random());
 			if ((center - Vec3(4, 0.2, 0)).length() > 0.9) {
-				if (choose_mat < 0.8) {  // diffuse
+				if (choose_mat < 0.1) {  // diffuse
 					list[i++] = new MovingSphere(center, center+Vec3(0,0.5, random()), 0.0, 1.0, 0.2, 
 							new Lambertian(new ConstantTexture(Vec3(random()*random(), random()*random(), random()*random()))) );
 				}
@@ -250,7 +252,6 @@ Vec3 color(const Ray& r, Hitable *world, int depth)
 	}
 }
 
-
 Vec3 pixelValue(const Vec3 radiance, const float k, const float gamma)
 {
 	// Adjust for constant sensitivity
@@ -280,12 +281,12 @@ Vec3 pixelValue(const Vec3 radiance, const float k, const float gamma)
 
 int main()
 {
-	int nx = 400; // 200;
-	int ny = 400; // 100;
+	int nx = 640; // 200;
+	int ny = 480; // 100;
 	int ns = 1000;
 	std::cout << "P3\n" << nx << " " << ny << "\n255\n";
 
-	//Hitable *world = RandomScene();
+	Hitable *world = RandomScene();
 	//Hitable *world = TwoSpheres();
 	//Hitable *world = TwoPerlinSpheres();
 	//Hitable *world = Earth();
@@ -296,17 +297,17 @@ int main()
 	//Hitable* world = XZRectTest();
 
 	//Hitable *world = CornellBalls();
-	Hitable *world = FinalBook2();
+	//Hitable *world = FinalBook2();
 
-	//Vec3 lookfrom(13, 2, 3); // Random scene
+	Vec3 lookfrom(13, 1, 3); // Random scene
 	//Vec3 lookfrom(0, 2, 10); // Earth scene
 	//Vec3 lookfrom(8, 3, 8);  //  Simple light scene
 	
-	Vec3 lookfrom(278, 278, -800);  // CornellBox
-	Vec3 lookat(278, 278, 0);		// CornellBox
+	//Vec3 lookfrom(278, 278, -800);  // CornellBox
+	//Vec3 lookat(278, 278, 0);		// CornellBox
 
 	//Vec3 lookat(0, 2, 0);		
-	//Vec3 lookat(0, 0, 0);
+	Vec3 lookat(0, 0, 0);
 	
 	float dist_to_focus = 10.0; // (lookfrom - lookat).length();
 	float aperture = 0.0;
