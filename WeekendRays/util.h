@@ -73,16 +73,31 @@ float schlick(float cosine, float ref_idx)
 	return r0 + (1 - r0)*pow((1 - cosine), 5);
 }
 
-inline float clamp(float val, float low, float hi) {
+inline float clamp(float val, float low, float hi) 
+{
 
-	if (val <= low) {
+	if (val <= low) 
+	{
 		return low;
 	}
-	else if (val >= hi) {
+	else if (val >= hi) 
+	{
 		return hi;
 	}
 	else {
 		return val;
 	}
 
+}
+
+inline Vec3 random_cosine_direction()
+{
+	float r1 = random();
+	float r2 = random();
+	float z = sqrt(1 - r2);
+	float phi = 2 * M_PI*r1;
+	float x = cos(phi) * 2 * sqrt(r2);
+	float y = sin(phi) * 2 * sqrt(r2);
+	
+	return Vec3(x, y, z);
 }
