@@ -12,10 +12,9 @@ struct HitRecord;
 class Material
 {
 public:
-	virtual bool scatter(const Ray& r_in, const HitRecord& rec, Vec3& attenuation, Ray& scattered) const = 0;
-	virtual Vec3 emitted(float u, float v, const Vec3& p) const {
-		return Vec3(0,0,0);
-	}
+	virtual bool scatter(const Ray& r_in, const HitRecord& rec, Vec3& albedo, Ray& scattered, float& pdf) const { return false; }
+	virtual float scattering_pdf(const Ray& r_in, const HitRecord& rec, const Ray& scattered) const { return false; }
+	virtual Vec3 emitted(float u, float v, const Vec3& p) const { return Vec3(0,0,0); }
 };
 
 class DiffuseLight : public Material
@@ -47,13 +46,18 @@ class Lambertian : public Material
 {
 public:
 	Lambertian(Texture *a) : albedo(a) {}
-	virtual bool scatter(const Ray& r_in, const HitRecord& rec, Vec3& attenuation, Ray& scattered) const {
+	bool scatter(const Ray& r_in, const HitRecord& rec, Vec3& alb, Ray& scattered, float& pdf) const {
 		Vec3 target = rec.p + rec.normal + random_in_unit_sphere();
-		scattered = Ray(rec.p, target - rec.p);
-		attenuation = albedo->value(rec.u,rec.v,rec.p);
+		scattered = Ray(rec.p, unit_vector(target - rec.p), r_in.time());
+		alb = albedo->value(rec.u,rec.v,rec.p);
+		pdf = dot(rec.normal, scattered.direction()) / M_PI;
 		return true;
 	}
-
+	float scattering_pdf(const Ray& r_in, const HitRecord& rec, const Ray& scattered) const {
+		float cosine = dot(rec.normal, unit_vector(scattered.direction()));
+		if (cosine < 0) cosine = 0;
+		return cosine / M_PI;
+	}
 	Texture *albedo;
 };
 

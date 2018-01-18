@@ -151,6 +151,35 @@ Hitable *CornellBox()
 	return new HitableList(list, i);
 }
 
+void CornellBox_MC(Hitable **scene, Camera **cam, float aspect)
+{
+	int i = 0;
+	Hitable **list = new Hitable*[8];
+	Material *red = new Lambertian(new ConstantTexture(Vec3(0.65, 0.05, 0.05)));
+	Material *white = new Lambertian(new ConstantTexture(Vec3(0.73, 0.73, 0.73)));
+	Material *green = new Lambertian(new ConstantTexture(Vec3(0.12, 0.45, 0.15)));
+	Material *light = new DiffuseLight(new ConstantTexture(Vec3(15, 15, 15)));
+	list[i++] = new FlipNormals(new YZRect(0, 555, 0, 555, 555, green));
+	list[i++] = new YZRect(0, 555, 0, 555, 0, red);
+	list[i++] = new XZRect(213, 343, 227, 332, 554, light);
+	list[i++] = new FlipNormals(new XZRect(0, 555, 0, 555, 555, white));
+	list[i++] = new XZRect(0, 555, 0, 555, 0, white);
+	list[i++] = new FlipNormals(new XYRect(0, 555, 0, 555, 555, white));
+	
+	list[i++] = new Translate(new RotateY(
+		new Box(Vec3(0, 0, 0), Vec3(165, 165, 165), white), -18), Vec3(130, 0, 65));
+	list[i++] = new Translate(new RotateY(
+		new Box(Vec3(0, 0, 0), Vec3(165, 330, 165), white), 15), Vec3(265, 0, 295));
+	*scene = new HitableList(list, i);
+	Vec3 lookfrom(278, 278, -800);
+	Vec3 lookat(278, 278, 0);
+	float dist_to_focus = 10.0;
+	float aperture = 0.0;
+	float vfov = 40.0;
+	*cam = new Camera(lookfrom, lookat, Vec3(0, 1, 0),
+					vfov, aspect, aperture, dist_to_focus, 0.0, 1.0);
+}
+
 Hitable* simpleLight()
 {
 	Texture *pertext = new NoiseTexture(4);
@@ -239,9 +268,11 @@ Vec3 color(const Ray& r, Hitable *world, int depth)
 		Ray scattered;
 		Vec3 attenuation;
 		Vec3 emitted = rec.material->emitted(rec.u, rec.v, rec.p);
-		if (depth < 50 && rec.material->scatter(r, rec, attenuation, scattered))
+		float pdf;
+		Vec3 albedo;
+		if (depth < 50 && rec.material->scatter(r, rec, albedo, scattered, pdf))
 		{
-			return emitted + attenuation*color(scattered, world, depth + 1);
+			return emitted + albedo*rec.material->scattering_pdf(r,rec,scattered)*color(scattered, world, depth + 1) / pdf;
 		}
 		else {
 			return emitted;
@@ -287,49 +318,15 @@ inline float pdf(const Vec3& p)
 int main()
 {
 
-	int N = 1000000;
-	float sum;
-	for (int i = 0; i < N; i++)
-	{
-		Vec3 d = random_on_unit_sphere();
-		float cosine_squared = d.z()*d.z();
-		sum += cosine_squared / pdf(d);
-	}
-	std::cout << "I = " << sum / N << "\n";
-
-	/*
-	int nx = 640; // 200;
-	int ny = 480; // 100;
+	int nx = 500; // 200;
+	int ny = 500; // 100;
 	int ns = 1000;
 	std::cout << "P3\n" << nx << " " << ny << "\n255\n";
 
-	Hitable *world = RandomScene();
-	//Hitable *world = TwoSpheres();
-	//Hitable *world = TwoPerlinSpheres();
-	//Hitable *world = Earth();
-	//Hitable *world = simpleLight();
-	//Hitable *world = CornellBox();
-	//Hitable *world = CornellSmoke();
-
-	//Hitable* world = XZRectTest();
-
-	//Hitable *world = CornellBalls();
-	//Hitable *world = FinalBook2();
-
-	Vec3 lookfrom(13, 1, 3); // Random scene
-	//Vec3 lookfrom(0, 2, 10); // Earth scene
-	//Vec3 lookfrom(8, 3, 8);  //  Simple light scene
-	
-	//Vec3 lookfrom(278, 278, -800);  // CornellBox
-	//Vec3 lookat(278, 278, 0);		// CornellBox
-
-	//Vec3 lookat(0, 2, 0);		
-	Vec3 lookat(0, 0, 0);
-	
-	float dist_to_focus = 10.0; // (lookfrom - lookat).length();
-	float aperture = 0.0;
-	float vfov = 40.0;
-	Camera cam(lookfrom, lookat, Vec3(0, 1, 0), vfov, float(nx)/float(ny), aperture, dist_to_focus,0.0, 1.0);
+	Hitable *world;
+	Camera *cam;
+	float aspect = float(ny) / float(nx);
+	CornellBox_MC(&world, &cam, aspect);
 
 	for (int j = ny - 1; j >= 0; j--)
 	{
@@ -341,7 +338,7 @@ int main()
 			{
 				float u = float(i + random()) / float(nx);
 				float v = float(j + random()) / float(ny);
-				Ray r = cam.get_ray(u, v);
+				Ray r = cam->get_ray(u, v);
 
 				Vec3 p = r.point(2.0);
 				col += color(r, world, 0);
@@ -366,5 +363,4 @@ int main()
 		delete world;
 		world = NULL;
 	}
-	*/
 }
