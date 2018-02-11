@@ -7,7 +7,7 @@ struct HitRecord;
 #include "hitable.h"
 #include "util.h"
 #include "texture.h"
-
+#include "onb.h"
 
 class Material
 {
@@ -47,10 +47,13 @@ class Lambertian : public Material
 public:
 	Lambertian(Texture *a) : albedo(a) {}
 	bool scatter(const Ray& r_in, const HitRecord& rec, Vec3& alb, Ray& scattered, float& pdf) const {
-		Vec3 target = rec.p + rec.normal + random_in_unit_sphere();
-		scattered = Ray(rec.p, unit_vector(target - rec.p), r_in.time());
-		alb = albedo->value(rec.u,rec.v,rec.p);
-		pdf = dot(rec.normal, scattered.direction()) / M_PI;
+		ONB uvw;
+		uvw.build_from_w(rec.normal);
+		Vec3 direction = uvw.local(random_cosine_direction());
+		scattered = Ray(rec.p, unit_vector(direction), r_in.time());
+		alb = albedo->value(rec.u, rec.v, rec.p);
+		pdf = dot(uvw.w(), scattered.direction()) / M_PI;
+
 		return true;
 	}
 	float scattering_pdf(const Ray& r_in, const HitRecord& rec, const Ray& scattered) const {

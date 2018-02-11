@@ -27,6 +27,7 @@
     </ClInclude>
     <ClInclude Include="box.h" />
     <ClInclude Include="ConstantMedium.h" />
+    <ClInclude Include="onb.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="3rdparty">

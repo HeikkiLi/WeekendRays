@@ -318,8 +318,8 @@ inline float pdf(const Vec3& p)
 int main()
 {
 
-	int nx = 500; // 200;
-	int ny = 500; // 100;
+	int nx = 256; // 200;
+	int ny = 256; // 100;
 	int ns = 1000;
 	std::cout << "P3\n" << nx << " " << ny << "\n255\n";
 
