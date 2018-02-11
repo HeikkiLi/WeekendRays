@@ -14,7 +14,7 @@ class Material
 public:
 	virtual bool scatter(const Ray& r_in, const HitRecord& rec, Vec3& albedo, Ray& scattered, float& pdf) const { return false; }
 	virtual float scattering_pdf(const Ray& r_in, const HitRecord& rec, const Ray& scattered) const { return false; }
-	virtual Vec3 emitted(float u, float v, const Vec3& p) const { return Vec3(0,0,0); }
+	virtual Vec3 emitted(const Ray& r_in, const HitRecord& rec, float u, float v, const Vec3& p) const { return Vec3(0, 0, 0); }		
 };
 
 class DiffuseLight : public Material
@@ -24,9 +24,13 @@ public:
 	virtual bool scatter(const Ray& r_in, const HitRecord& rec, Vec3& attenuation, Ray& scattered) const {
 		return false;
 	}
-	virtual Vec3 emitted(float u, float v, const Vec3& p) const {
-		return emit->value(u, v, p);
+	virtual Vec3 emitted(const Ray& r_in, const HitRecord& rec, float u, float v, const Vec3& p) const {
+		if (dot(rec.normal, r_in.direction()) < 0.0)
+			return emit->value(u, v, p);
+		else
+			return Vec3(0, 0, 0);
 	}
+	
 
 	Texture *emit;
 };

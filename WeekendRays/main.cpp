@@ -161,7 +161,7 @@ void CornellBox_MC(Hitable **scene, Camera **cam, float aspect)
 	Material *light = new DiffuseLight(new ConstantTexture(Vec3(15, 15, 15)));
 	list[i++] = new FlipNormals(new YZRect(0, 555, 0, 555, 555, green));
 	list[i++] = new YZRect(0, 555, 0, 555, 0, red);
-	list[i++] = new XZRect(213, 343, 227, 332, 554, light);
+	list[i++] = new FlipNormals(new XZRect(213, 343, 227, 332, 554, light));
 	list[i++] = new FlipNormals(new XZRect(0, 555, 0, 555, 555, white));
 	list[i++] = new XZRect(0, 555, 0, 555, 0, white);
 	list[i++] = new FlipNormals(new XYRect(0, 555, 0, 555, 555, white));
@@ -267,11 +267,24 @@ Vec3 color(const Ray& r, Hitable *world, int depth)
 	{
 		Ray scattered;
 		Vec3 attenuation;
-		Vec3 emitted = rec.material->emitted(rec.u, rec.v, rec.p);
+		Vec3 emitted = rec.material->emitted(r, rec, rec.u, rec.v, rec.p);
 		float pdf;
 		Vec3 albedo;
 		if (depth < 50 && rec.material->scatter(r, rec, albedo, scattered, pdf))
 		{
+			Vec3 onLight = Vec3(213 + random()*(343 - 213), 554, 227 + random()*(332 - 227));
+			Vec3 toLight = onLight - rec.p;
+			float distanceSquared = toLight.squared_length();
+			toLight.make_unit_vector();
+			if (dot(toLight, rec.normal) < 0)
+				return emitted;
+			float lightArea = (343 - 213)*(332 - 227);
+			float lightCosine = fabs(toLight.y());
+			if (lightCosine < 0.000001)
+				return emitted;
+			pdf = distanceSquared / (lightCosine*lightArea);
+			scattered = Ray(rec.p, toLight, r.time());
+
 			return emitted + albedo*rec.material->scattering_pdf(r,rec,scattered)*color(scattered, world, depth + 1) / pdf;
 		}
 		else {
@@ -320,7 +333,7 @@ int main()
 
 	int nx = 256; // 200;
 	int ny = 256; // 100;
-	int ns = 1000;
+	int ns = 10;
 	std::cout << "P3\n" << nx << " " << ny << "\n255\n";
 
 	Hitable *world;
