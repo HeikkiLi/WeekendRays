@@ -12,6 +12,7 @@
 #include "aarect.h"
 #include "box.h"
 #include "ConstantMedium.h"
+#include "pdf.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_WRITE_IMPLEMENTATION
@@ -37,7 +38,7 @@ Hitable* FinalBook2()
 			float z0 = -1000 + j*w;
 			float y0 = 0;
 			float x1 = x0 + w;
-			float y1 = 100 * (random() + 0.01);
+			float y1 = 100 * (fRandom() + 0.01);
 			float z1 = z0 + w;
 			boxList[b++] = new Box(Vec3(x0, y0, z0), Vec3(x1, y1, z1), ground);
 		}
@@ -65,7 +66,7 @@ Hitable* FinalBook2()
 	int ns = 1000;
 	for (int j = 0; j < ns; j++)
 	{
-		boxList2[j] = new Sphere(Vec3(165 * random(), 165 * random(), 165 * random()), 10, white);
+		boxList2[j] = new Sphere(Vec3(165 * fRandom(), 165 * fRandom(), 165 * fRandom()), 10, white);
 	}
 	list[l++] = new Translate(new RotateY(new BVHNode(boxList2, ns, 0.0, 1.0), 15), Vec3(-100, 270, 395));
 	return new HitableList(list, l);
@@ -234,16 +235,16 @@ Hitable* RandomScene()
 	int i = 1;
 	for (int a = -11; a < 11; a++) {
 		for (int b = -11; b < 11; b++) {
-			float choose_mat = random();
-			Vec3 center(a + 0.9*random(), 0.2, b + 0.9*random());
+			float choose_mat = fRandom();
+			Vec3 center(a + 0.9*fRandom(), 0.2, b + 0.9*fRandom());
 			if ((center - Vec3(4, 0.2, 0)).length() > 0.9) {
 				if (choose_mat < 0.1) {  // diffuse
-					list[i++] = new MovingSphere(center, center+Vec3(0,0.5, random()), 0.0, 1.0, 0.2, 
-							new Lambertian(new ConstantTexture(Vec3(random()*random(), random()*random(), random()*random()))) );
+					list[i++] = new MovingSphere(center, center+Vec3(0,0.5, fRandom()), 0.0, 1.0, 0.2, 
+							new Lambertian(new ConstantTexture(Vec3(fRandom()*fRandom(), fRandom()*fRandom(), fRandom()*fRandom()))) );
 				}
 				else if (choose_mat < 0.95) { // metal
 					list[i++] = new Sphere(center, 0.2,
-						new Metal(Vec3(0.5*(1 + random()), 0.5*(1 + random()), 0.5*(1 + random())), 0.5*random()));
+						new Metal(Vec3(0.5*(1 + fRandom()), 0.5*(1 + fRandom()), 0.5*(1 + fRandom())), 0.5*fRandom()));
 				}
 				else {  // glass
 					list[i++] = new Sphere(center, 0.2, new Dielectric(1.5));
@@ -268,24 +269,19 @@ Vec3 color(const Ray& r, Hitable *world, int depth)
 		Ray scattered;
 		Vec3 attenuation;
 		Vec3 emitted = rec.material->emitted(r, rec, rec.u, rec.v, rec.p);
-		float pdf;
+		float pdf_val;
 		Vec3 albedo;
-		if (depth < 50 && rec.material->scatter(r, rec, albedo, scattered, pdf))
+		if (depth < 50 && rec.material->scatter(r, rec, albedo, scattered, pdf_val))
 		{
-			Vec3 onLight = Vec3(213 + random()*(343 - 213), 554, 227 + random()*(332 - 227));
-			Vec3 toLight = onLight - rec.p;
-			float distanceSquared = toLight.squared_length();
-			toLight.make_unit_vector();
-			if (dot(toLight, rec.normal) < 0)
-				return emitted;
-			float lightArea = (343 - 213)*(332 - 227);
-			float lightCosine = fabs(toLight.y());
-			if (lightCosine < 0.000001)
-				return emitted;
-			pdf = distanceSquared / (lightCosine*lightArea);
-			scattered = Ray(rec.p, toLight, r.time());
+			Hitable *light_shape = new XZRect(213, 343, 227, 332, 554, 0);
+			HitablePDF p0(light_shape, rec.p);
+			CosinePDF p1(rec.normal);
+			MixturePDF p(&p0, &p1);
 
-			return emitted + albedo*rec.material->scattering_pdf(r,rec,scattered)*color(scattered, world, depth + 1) / pdf;
+			scattered = Ray(rec.p, p.generate(), r.time());
+			pdf_val = p.value(scattered.direction());
+
+			return emitted + albedo*rec.material->scattering_pdf(r,rec,scattered)*color(scattered, world, depth + 1) / pdf_val;
 		}
 		else {
 			return emitted;
@@ -331,9 +327,9 @@ inline float pdf(const Vec3& p)
 int main()
 {
 
-	int nx = 256; // 200;
-	int ny = 256; // 100;
-	int ns = 10;
+	int nx = 500; 
+	int ny = 500;
+	int ns = 100;
 	std::cout << "P3\n" << nx << " " << ny << "\n255\n";
 
 	Hitable *world;
@@ -349,8 +345,8 @@ int main()
 			
 			for (int s = 0; s < ns; s++)
 			{
-				float u = float(i + random()) / float(nx);
-				float v = float(j + random()) / float(ny);
+				float u = float(i + fRandom()) / float(nx);
+				float v = float(j + fRandom()) / float(ny);
 				Ray r = cam->get_ray(u, v);
 
 				Vec3 p = r.point(2.0);

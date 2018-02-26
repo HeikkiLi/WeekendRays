@@ -27,7 +27,7 @@ public:
 	Ray get_ray(float s, float t) {
 		Vec3 rd = lens_radius*random_in_unit_disk();
 		Vec3 offset = u*rd.x() + v*rd.y();
-		float time = time0 + random()*(time1 - time0);
+		float time = time0 + fRandom()*(time1 - time0);
 		return Ray(origin+offset, lower_left_corner + s*horizontal + t*vertical - origin-offset, time); 
 	}
 

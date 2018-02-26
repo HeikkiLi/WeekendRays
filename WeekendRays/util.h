@@ -7,7 +7,7 @@
 
 //#define M_PI 3.14159265358979323846
 
-float random()
+float fRandom()
 {
 	std::random_device rd;
 	std::mt19937 mt(rd());
@@ -22,7 +22,7 @@ Vec3 random_in_unit_sphere()
 {
 	Vec3 p;
 	do {
-		p = 2.0f*Vec3(random(), random(), random()) - Vec3(1, 1, 1);
+		p = 2.0f*Vec3(fRandom(), fRandom(), fRandom()) - Vec3(1, 1, 1);
 	} while (dot(p, p) >= 1.0f);
 	return p;
 
@@ -32,7 +32,7 @@ Vec3 random_on_unit_sphere()
 {
 	Vec3 p;
 	do {
-		p = 2.0f*Vec3(random(), random(), random()) - Vec3(1, 1, 1);
+		p = 2.0f*Vec3(fRandom(), fRandom(), fRandom()) - Vec3(1, 1, 1);
 	} while (dot(p, p) >= 1.0f);
 	return unit_vector(p);
 
@@ -42,7 +42,7 @@ Vec3 random_in_unit_disk()
 {
 	Vec3 p;
 	do {
-		p = 2.0 * Vec3(random(), random(), 0) - Vec3(1, 1, 0);
+		p = 2.0 * Vec3(fRandom(), fRandom(), 0) - Vec3(1, 1, 0);
 	} while (dot(p, p) >= 1.0);
 	return p;
 }
@@ -92,8 +92,8 @@ inline float clamp(float val, float low, float hi)
 
 inline Vec3 random_cosine_direction()
 {
-	float r1 = random();
-	float r2 = random();
+	float r1 = fRandom();
+	float r2 = fRandom();
 	float z = sqrt(1 - r2);
 	float phi = 2 * M_PI*r1;
 	float x = cos(phi) * 2 * sqrt(r2);

@@ -116,7 +116,7 @@ public:
 			reflect_prob = 1.0f;
 		}
 
-		if(random() < reflect_prob)
+		if(fRandom() < reflect_prob)
 		{
 			scattered = Ray(rec.p, reflected);
 		}

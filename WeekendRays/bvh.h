@@ -58,7 +58,7 @@ int box_z_compare(const void* a, const void* b)
 
 inline BVHNode::BVHNode(Hitable** l, int n, float time0, float time1)
 {
-	int axis = int(3 * random());
+	int axis = int(3 * fRandom());
 	if (axis == 0)
 	{
 		qsort(l, n, sizeof(Hitable*), box_x_compare);

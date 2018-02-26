@@ -24,7 +24,7 @@ public:
 bool ConstantMedium::hit(const Ray & r, float t_min, float t_max, HitRecord & rec) const
 {
 
-	bool db = (random() < 0.00001);
+	bool db = (fRandom() < 0.00001);
 	db = false;
 	HitRecord rec1, rec2;
 	if (boundary->hit(r, -FLT_MAX, FLT_MAX, rec1))
@@ -41,7 +41,7 @@ bool ConstantMedium::hit(const Ray & r, float t_min, float t_max, HitRecord & re
 			if (rec1.t < 0)
 				rec1.t = 0;
 			float distance_inside_boundary = (rec2.t - rec1.t)*r.direction().length();
-			float hit_distance = -(1 / density)*log(random());
+			float hit_distance = -(1 / density)*log(fRandom());
 			if (hit_distance < distance_inside_boundary)
 			{
 				if (db) std::cerr << "hit_distance = " << hit_distance << "\n";
