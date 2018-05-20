@@ -10,10 +10,29 @@ public:
 	HitableList(Hitable **l, int n) { list = l; list_size = n; }
 	virtual bool hit(const Ray& r, float t_min, float t_max, HitRecord& rec) const;
 	virtual bool bounding_box(float t0, float t1, AABB& box) const;
+	virtual float pdf_value(const Vec3& o, const Vec3& v) const;
+	virtual Vec3 random(const Vec3& o) const;
 
 	Hitable** list;
 	int list_size;
 };
+
+inline float HitableList::pdf_value(const Vec3 & o, const Vec3 & v) const
+{
+	float weight = 1.0 / list_size;
+	float sum = 0;
+	for (int i = 0; i < list_size; i++)
+	{
+		sum += weight*list[i]->pdf_value(o, v);
+	}
+	return sum;
+}
+
+inline Vec3 HitableList::random(const Vec3 & o) const
+{
+	int index = int(fRandom() * (list_size-1));
+	return list[index]->random(o);
+}
 
 bool HitableList::hit(const Ray& r, float t_min, float t_max, HitRecord& rec) const
 {

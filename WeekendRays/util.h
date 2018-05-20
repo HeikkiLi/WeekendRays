@@ -9,6 +9,7 @@
 
 float fRandom()
 {
+	
 	std::random_device rd;
 	std::mt19937 mt(rd());
 	std::uniform_real_distribution<float> dist(0.0, 1.0);
@@ -36,6 +37,17 @@ Vec3 random_on_unit_sphere()
 	} while (dot(p, p) >= 1.0f);
 	return unit_vector(p);
 
+}
+
+inline Vec3 random_to_sphere(float radius, float distance_squared)
+{
+	float r1 = fRandom();
+	float r2 = fRandom();
+	float z = 1 + r2*(sqrt(1 - radius*radius / distance_squared) - 1);
+	float phi = 2 * M_PI*r1;
+	float x = cos(phi)*sqrt(1 - z*z);
+	float y = sin(phi)*sqrt(1 - z*z);
+	return Vec3(x, y, z);
 }
 
 Vec3 random_in_unit_disk()

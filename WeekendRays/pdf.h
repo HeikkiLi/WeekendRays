@@ -7,6 +7,7 @@ class PDF {
 public:
 	virtual float value(const Vec3& direction) const = 0;
 	virtual Vec3 generate() const = 0;
+	~PDF() {}
 };
 
 class CosinePDF : public PDF

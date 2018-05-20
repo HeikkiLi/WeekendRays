@@ -1,5 +1,6 @@
 #include <iostream>
 #include <float.h>
+#include <thread>
 
 #include "sphere.h"
 #include "movingsphere.h"
@@ -19,7 +20,15 @@
 #include "3rdparty\stb_image.h"
 #include "3rdparty\std_image_write.h"
 
-Hitable* FinalBook2()
+inline Vec3 de_nan(const Vec3& c) {
+	Vec3 temp = c;
+	if (!(temp[0] == temp[0])) temp[0] = 0;
+	if (!(temp[1] == temp[1])) temp[1] = 0;
+	if (!(temp[2] == temp[2])) temp[2] = 0;
+	return temp;
+}
+
+void FinalBook2(Hitable **scene, Camera **cam, float aspect)
 {
 	int nb = 20;
 	Hitable** list = new Hitable*[30];
@@ -46,7 +55,7 @@ Hitable* FinalBook2()
 	int l = 0;
 	list[l++] = new BVHNode(boxList, b, 0, 1);
 	Material* light = new DiffuseLight(new ConstantTexture(Vec3(7, 7, 7)));
-	list[l++] = new XZRect(123, 423, 147, 412, 554, light);
+	list[l++] = new FlipNormals( new XZRect(123, 423, 147, 412, 554, light));
 	Vec3 center(400, 400, 200);
 	list[l++] = new MovingSphere(center, center + Vec3(30, 0, 0), 0, 1, 50,
 		new Lambertian(new ConstantTexture(Vec3(0.7, 0.3, 0.1))));
@@ -69,90 +78,19 @@ Hitable* FinalBook2()
 		boxList2[j] = new Sphere(Vec3(165 * fRandom(), 165 * fRandom(), 165 * fRandom()), 10, white);
 	}
 	list[l++] = new Translate(new RotateY(new BVHNode(boxList2, ns, 0.0, 1.0), 15), Vec3(-100, 270, 395));
-	return new HitableList(list, l);
+
+	*scene = new HitableList(list, l);
+	Vec3 lookfrom(278, 278, -800);
+	Vec3 lookat(278, 278, 0);
+	float dist_to_focus = 10.0;
+	float aperture = 0.0;
+	float vfov = 40.0;
+	*cam = new Camera(lookfrom, lookat, Vec3(0, 1, 0),
+		vfov, aspect, aperture, dist_to_focus, 0.0, 1.0);
+
 }
 
-Hitable* CornellBalls()
-{
-	Hitable **list = new Hitable*[9];
-	int i = 0;
-	Material *red = new Lambertian(new ConstantTexture(Vec3(0.65, 0.05, 0.05)));
-	Material *white = new Lambertian(new ConstantTexture(Vec3(0.73, 0.73, 0.73)));
-	Material *green = new Lambertian(new ConstantTexture(Vec3(0.12, 0.45, 0.15)));
-	Material *light = new DiffuseLight(new ConstantTexture(Vec3(5, 5, 5)));
-
-	// Walls
-	list[i++] = new FlipNormals(new YZRect(0, 555, 0, 555, 555, green));
-	list[i++] = new YZRect(0, 555, 0, 555, 0, red);
-	list[i++] = new FlipNormals(new XZRect(113, 443, 127, 432, 554, light) );
-	list[i++] = new FlipNormals(new XZRect(0, 555, 0, 555, 555, white));
-	list[i++] = new XZRect(0, 555, 0, 555, 0, white);
-	list[i++] = new FlipNormals(new XYRect(0, 555, 0, 555, 555, white));
-
-	// Spheres (Balls)
-	Hitable *boundary = new Sphere(Vec3(160, 100, 145), 100, new Dielectric(1.5));
-	list[i++] = boundary;
-	list[i++] = new ConstantMedium(boundary, 0.1, new ConstantTexture(Vec3(1.0, 1.0, 1.0)));
-	list[i++] = new Translate(new RotateY(new Box(Vec3(0, 0, 0), Vec3(165, 330, 165), white), 15), Vec3(265, 0, 295));
-
-	return new HitableList(list, i);
-}
-
-Hitable* CornellSmoke()
-{
-	Hitable **list = new Hitable*[8];
-	int i = 0;
-	Material *red = new Lambertian(new ConstantTexture(Vec3(0.65, 0.05, 0.05)));
-	Material *white = new Lambertian(new ConstantTexture(Vec3(0.73, 0.73, 0.73)));
-	Material *green = new Lambertian(new ConstantTexture(Vec3(0.12, 0.45, 0.15)));
-	Material *light = new DiffuseLight(new ConstantTexture(Vec3(17,17, 17)));
-
-	list[i++] = new FlipNormals(new YZRect(0, 555, 0, 555, 555, green));
-	list[i++] = new YZRect(0, 555, 0, 555, 0, red);
-	list[i++] = new XZRect(113, 443, 127, 432, 554, light);
-	list[i++] = new FlipNormals(new XZRect(0, 555, 0, 555, 555, white));
-	list[i++] = new XZRect(0, 555, 0, 555, 0, white);
-	list[i++] = new FlipNormals(new XYRect(0, 555, 0, 555, 555, white));
-
-	Hitable *b1 = new Translate(new RotateY(new Box(Vec3(0, 0, 0), Vec3(165, 165, 165), white), -18), Vec3(130, 0, 65));
-	Hitable *b2 = new Translate(new RotateY(new Box(Vec3(0, 0, 0), Vec3(165, 330, 165), white), 15), Vec3(265, 0, 295));
-	list[i++] = new ConstantMedium(b1, 0.01, new ConstantTexture(Vec3(1.0, 1.0, 1.0)));
-	list[i++] = new ConstantMedium(b2, 0.01, new ConstantTexture(Vec3(0.0, 0.0, 0.0)));
-	
-	return new HitableList(list, i);
-}
-
-Hitable* XZRectTest()
-{
-	Hitable **list = new Hitable*[2];
-	int i = 0;
-	Material *light = new DiffuseLight(new ConstantTexture(Vec3(1, 1, 1)));
-	list[i++] = new XZRect(113, 443, 127, 432, 554, light);
-	list[i++] = new XYRect(113, 443, 127, 432, 554, light);
-	return new HitableList(list, i);
-}
-
-Hitable *CornellBox()
-{
-	Hitable **list = new Hitable*[8];
-	int i = 0;
-	Material *red = new Lambertian(new ConstantTexture(Vec3(0.65, 0.05, 0.05)));
-	Material *white = new Lambertian(new ConstantTexture(Vec3(0.73, 0.73, 0.73)));
-	Material *green = new Lambertian(new ConstantTexture(Vec3(0.12, 0.45, 0.15)));
-	Material *light = new DiffuseLight(new ConstantTexture(Vec3(15, 15, 15)));
-	
-	list[i++] = new FlipNormals( new YZRect(0, 555, 0, 555, 555, green) );
-	list[i++] = new YZRect(0, 555, 0, 555, 0, red);
-	list[i++] = new XZRect(213, 343, 227, 332, 554, light);
-	list[i++] = new FlipNormals( new XZRect(0, 555, 0, 555, 555, white) );
-	list[i++] = new XZRect(0, 555, 0, 555, 0, white);
-	list[i++] = new FlipNormals( new XYRect(0, 555, 0, 555, 555, white) );
-	list[i++] = new Translate( new RotateY( new Box(Vec3(0, 0, 0), Vec3(165, 165, 165), white), -18), Vec3(130, 0, 65));
-	list[i++] = new Translate( new RotateY( new Box(Vec3(0, 0, 0), Vec3(165, 330, 165), white), 15), Vec3(265,0,295));
-	return new HitableList(list, i);
-}
-
-void CornellBox_MC(Hitable **scene, Camera **cam, float aspect)
+void CornellBox(Hitable **scene, Camera **cam, float aspect)
 {
 	int i = 0;
 	Hitable **list = new Hitable*[8];
@@ -167,8 +105,9 @@ void CornellBox_MC(Hitable **scene, Camera **cam, float aspect)
 	list[i++] = new XZRect(0, 555, 0, 555, 0, white);
 	list[i++] = new FlipNormals(new XYRect(0, 555, 0, 555, 555, white));
 	
-	list[i++] = new Translate(new RotateY(
-		new Box(Vec3(0, 0, 0), Vec3(165, 165, 165), white), -18), Vec3(130, 0, 65));
+	Material *glass = new Dielectric(1.5);
+	list[i++] = new Sphere(Vec3(190, 90, 190), 90, glass);
+	
 	list[i++] = new Translate(new RotateY(
 		new Box(Vec3(0, 0, 0), Vec3(165, 330, 165), white), 15), Vec3(265, 0, 295));
 	*scene = new HitableList(list, i);
@@ -181,65 +120,32 @@ void CornellBox_MC(Hitable **scene, Camera **cam, float aspect)
 					vfov, aspect, aperture, dist_to_focus, 0.0, 1.0);
 }
 
-Hitable* simpleLight()
+
+void RandomScene(Hitable **scene, Camera **cam, float aspect)
 {
-	Texture *pertext = new NoiseTexture(4);
-	Hitable **list = new Hitable*[4];
-	list[0] = new Sphere(Vec3(0, -1000, 0), 1000, new Lambertian(pertext));
-	list[1] = new Sphere(Vec3(0, 2, 0), 2, new Lambertian(pertext));
-	list[2] = new Sphere(Vec3(0, 7, 0), 2, new DiffuseLight(new ConstantTexture(Vec3(4, 4, 4))));
-	list[3] = new XYRect(3, 5, 1, 3, -2, new DiffuseLight(new ConstantTexture(Vec3(4, 4, 4))));
-	return new HitableList(list, 4);
-}
 
-Hitable* Earth()
-{
-	int nx = 0;
-	int ny = 0;
-	int nn = 0;
-	unsigned char* tex_data = stbi_load("earthmap.jpg", &nx, &ny, &nn, 0);
-	Material *mat = new Lambertian(new ImageTexture(tex_data, nx, ny));
-	return new Sphere(Vec3(0, 0, 0), 2, mat);
-}
+	Vec3 lookfrom(13, 2, 3);
+	Vec3 lookat(0, 0, 0);
+	float dist_to_focus = 10.0;
+	float aperture = 0.1;
 
-Hitable* TwoPerlinSpheres()
-{
-	Texture *pertext = new NoiseTexture(4);
-	Hitable **list = new Hitable*[2];
-	list[0] = new Sphere(Vec3(0, -1000, 0), 1000, new Lambertian( pertext ));
-	list[1] = new Sphere(Vec3(0, 2, 0), 2, new Lambertian( pertext ));
+	*cam = new Camera(lookfrom, lookat, Vec3(0, 1, 0), 20, aspect, aperture, dist_to_focus, 0.0, 1.0);
 
-	return new HitableList(list, 2);
-}
-
-Hitable* TwoSpheres()
-{
-	Texture *checker = new CheckerTexture(new ConstantTexture(Vec3(0.2, 0.3, 0.1)),
-		new ConstantTexture(Vec3(0.9, 0.9, 0.9)));
-	Hitable **list = new Hitable*[2];
-	list[0] = new Sphere(Vec3(0, -10, 0), 10, new Lambertian(checker));
-	list[1] = new Sphere(Vec3(0, 10, 0), 10, new Lambertian(checker));
-
-	return new HitableList(list, 2);
-}
-
-Hitable* RandomScene()
-{
 	int n = 500;
-	Hitable **list = new Hitable*[n + 1];
+	Hitable **list = new Hitable*[n + 1 +1];
 	Texture *checker = new CheckerTexture(new ConstantTexture(Vec3(0.2, 0.3, 0.1)),
 											new ConstantTexture(Vec3(0.9, 0.9, 0.9)));
 
 	
 	list[0] = new Sphere(Vec3(0, -1000.0, 0), 1000, new Lambertian(checker));
 	int i = 1;
-	for (int a = -11; a < 11; a++) {
-		for (int b = -11; b < 11; b++) {
+	for (int a = -10; a < 10; a++) {
+		for (int b = -10; b < 10; b++) {
 			float choose_mat = fRandom();
 			Vec3 center(a + 0.9*fRandom(), 0.2, b + 0.9*fRandom());
 			if ((center - Vec3(4, 0.2, 0)).length() > 0.9) {
 				if (choose_mat < 0.1) {  // diffuse
-					list[i++] = new MovingSphere(center, center+Vec3(0,0.5, fRandom()), 0.0, 1.0, 0.2, 
+					list[i++] = new Sphere(center, 0.2,
 							new Lambertian(new ConstantTexture(Vec3(fRandom()*fRandom(), fRandom()*fRandom(), fRandom()*fRandom()))) );
 				}
 				else if (choose_mat < 0.95) { // metal
@@ -257,38 +163,45 @@ Hitable* RandomScene()
 	list[i++] = new Sphere(Vec3(-4, 1, 0), 1.0, new Lambertian(new ConstantTexture(Vec3(0.4, 0.2, 0.1))) );
 	list[i++] = new Sphere(Vec3(4, 1, 0), 1.0, new Metal(Vec3(0.7, 0.6, 0.5), 0.0));
 
+	Material *light = new DiffuseLight(new ConstantTexture(Vec3(15, 15, 15)));
+	list[i++] = new FlipNormals(new XZRect(123, 423, 147, 412, 554, light));
 	//return new HitableList(list, i);
-	return new BVHNode(list, i, 0.0, 1.0);
+	*scene = new BVHNode(list, i, 0.0, 1.0);
 }
 
-Vec3 color(const Ray& r, Hitable *world, int depth)
+Vec3 color(const Ray& r, Hitable *world, Hitable *light_shape, int depth)
 {
-	HitRecord rec;
-	if (world->hit(r, 0.001f, FLT_MAX, rec))
+	HitRecord hrec;
+	if (world->hit(r, 0.001f, FLT_MAX, hrec))
 	{
-		Ray scattered;
-		Vec3 attenuation;
-		Vec3 emitted = rec.material->emitted(r, rec, rec.u, rec.v, rec.p);
-		float pdf_val;
-		Vec3 albedo;
-		if (depth < 50 && rec.material->scatter(r, rec, albedo, scattered, pdf_val))
+		ScatterRecord srec;
+		Vec3 emitted = hrec.material->emitted(r, hrec, hrec.u, hrec.v, hrec.p);
+		
+		if (depth < 50 && hrec.material->scatter(r, hrec, srec))
 		{
-			Hitable *light_shape = new XZRect(213, 343, 227, 332, 554, 0);
-			HitablePDF p0(light_shape, rec.p);
-			CosinePDF p1(rec.normal);
-			MixturePDF p(&p0, &p1);
+			if (srec.isSpecular)
+			{
+				return srec.attenuation * color(srec.specularRay, world, light_shape, depth + 1);
+			}
+			else {
+				HitablePDF pLight(light_shape, hrec.p);
+				MixturePDF p(&pLight, srec.pdfPtr);
 
-			scattered = Ray(rec.p, p.generate(), r.time());
-			pdf_val = p.value(scattered.direction());
-
-			return emitted + albedo*rec.material->scattering_pdf(r,rec,scattered)*color(scattered, world, depth + 1) / pdf_val;
+				Ray scattered = Ray(hrec.p, p.generate(), r.time());
+				float pdf_val = p.value(scattered.direction());
+				delete srec.pdfPtr;
+				return emitted + srec.attenuation*hrec.material->scattering_pdf(r, hrec, scattered)*color(scattered, world, light_shape, depth + 1) / pdf_val;
+			}
 		}
 		else {
 			return emitted;
 		}
 	}
 	else {
-		return Vec3(0, 0, 0);
+		//return Vec3(0, 0, 0);
+		Vec3 unit_direction = unit_vector(r.direction());
+		float t = 0.5*(unit_direction.y() + 1.0);
+		return (1.0 - t)*Vec3(1.0, 1.0, 1.0) + t*Vec3(0.5, 0.7, 1.0);
 	}
 }
 
@@ -318,25 +231,26 @@ Vec3 pixelValue(const Vec3 radiance, const float k, const float gamma)
 	return c;
 }
 
-// Probability Density Function
-inline float pdf(const Vec3& p)
-{
-	return 1 / (4 * M_PI);
-}
-
 int main()
 {
 
-	int nx = 500; 
-	int ny = 500;
-	int ns = 100;
+	int nx = 800; // 250;
+	int ny = 600; // 250;
+	int ns = 1000;
 	std::cout << "P3\n" << nx << " " << ny << "\n255\n";
 
 	Hitable *world;
 	Camera *cam;
 	float aspect = float(ny) / float(nx);
-	CornellBox_MC(&world, &cam, aspect);
-
+	//CornellBox(&world, &cam, aspect);
+	RandomScene(&world, &cam, aspect);
+	//FinalBook2(&world, &cam, aspect);
+	Hitable *light_shape = new XZRect(123, 423, 147, 412, 554, 0); // new XZRect(213, 343, 227, 332, 554, 0);
+	//Hitable *glass_sphere = new Sphere(Vec3(190, 90, 190), 90, 0);
+	Hitable *a[1];
+	a[0] = light_shape;
+	//a[1] = glass_sphere;
+	HitableList hlist(a, 1);
 	for (int j = ny - 1; j >= 0; j--)
 	{
 		for (int i = 0; i < nx; i++)
@@ -349,15 +263,15 @@ int main()
 				float v = float(j + fRandom()) / float(ny);
 				Ray r = cam->get_ray(u, v);
 
-				Vec3 p = r.point(2.0);
-				col += color(r, world, 0);
+				col += de_nan(color(r, world, &hlist, 0));
 			}
 			
 
 			col /= float(ns);
 			// gamma correction
 			//col = Vec3(sqrt(col[0]), sqrt(col[1]), sqrt(col[2]));
-			col = pixelValue(col, 0.9f, 2.2f);
+			col *= 0.02f;
+		    col = pixelValue(col, 0.3f, 2.2f);
 			int ir = int(255.99*col[0]);
 			int ig = int(255.99*col[1]);
 			int ib = int(255.99*col[2]);
