@@ -234,8 +234,8 @@ Vec3 pixelValue(const Vec3 radiance, const float k, const float gamma)
 int main()
 {
 
-	int nx = 800; // 250;
-	int ny = 600; // 250;
+	int nx = 100; // 800; // 250;
+	int ny = 100; // 600; // 250;
 	int ns = 1000;
 	std::cout << "P3\n" << nx << " " << ny << "\n255\n";
 
